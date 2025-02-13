@@ -102,4 +102,38 @@ CO_p +
 ggsave("figures/CO_outcome_test_all.png", width = 8, height = 13, dpi = 300)
 
 
+# Wisconsin, Statewide
 
+dataset <- readRDS("data/wi_statewide_2020_04_01.rds")
+
+WI_disparity <- calculate_disparity(dataset)
+WI_p <- outcome_test_plot(WI_disparity)
+WI_p +
+  theme(axis.title = element_text(size = 14),
+        axis.text = element_text(size = 13))
+ggsave("figures/WI_outcome_test_all.png", width = 8, height = 13, dpi = 300)
+
+
+# Washington, Statewide
+dataset <- readRDS("data/wa_statewide_2020_04_01.rds")
+
+WA_disparity <- calculate_disparity(dataset)
+WA_p <- outcome_test_plot(WA_disparity)
+WA_p +
+  theme(axis.title = element_text(size = 14),
+        axis.text = element_text(size = 13))
+ggsave("figures/WA_outcome_test_all.png", width = 8, height = 13, dpi = 300)
+
+
+# Maryland, Statewide
+# using department name instead of county name
+dataset <- readRDS("data/md_statewide_2020_04_01.rds") %>% rename(county_name = department_name)
+
+MD_disparity <- calculate_disparity(dataset)
+MD_p <- outcome_test_plot(MD_disparity)
+MD_p +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 13))
+ggsave("figures/MD_outcome_test_all.png", width = 8, height = 13, dpi = 300)

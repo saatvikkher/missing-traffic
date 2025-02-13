@@ -170,6 +170,8 @@ calculate_disparity <- function(dataset) {
     group_by(county_name) %>%
     filter(!(any(is.na(black) | is.na(white)))) %>%
     ungroup() %>%
+    # remove counties with no black or white searches
+    filter(white != 0 & black != 0) %>%
     return()
   
 }
