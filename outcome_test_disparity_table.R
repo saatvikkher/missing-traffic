@@ -1,5 +1,9 @@
 source("outcome_test.R")
 
+num_counties <- function(x) {
+  length(unique(x))
+}
+
 disparity_estimate_table <- function(p_ate, name) {
   p_ate %>%
     filter(white != 0 & black != 0) %>%
@@ -26,11 +30,21 @@ disparity_estimate_table <- function(p_ate, name) {
     return()
 }
 
-disparity_estimates(calculate_disparity(readRDS("data/oh_statewide_2020_04_01.rds")), "OH") %>%
+disparity_estimate_table(calculate_disparity(
+  readRDS("data/oh_statewide_2020_04_01.rds") %>% 
+    mutate(contraband_found = case_when(search_conducted & is.na(contraband_found) ~ FALSE,
+                                                                                      TRUE ~ contraband_found))
+  ), "OH") %>%
   bind_rows(
-    disparity_estimates(calculate_disparity(readRDS("data/co_statewide_2020_04_01.rds")), "CO"),
-    disparity_estimates(calculate_disparity(readRDS("data/wi_statewide_2020_04_01.rds")), "WI"),
-    disparity_estimates(calculate_disparity(readRDS("data/wa_statewide_2020_04_01.rds")), "WA"),
-    disparity_estimates(calculate_disparity(readRDS("data/md_statewide_2020_04_01.rds")), "MD")
+    disparity_estimate_table(calculate_disparity(readRDS("data/co_statewide_2020_04_01.rds")), "CO"),
+    disparity_estimate_table(calculate_disparity(readRDS("data/wi_statewide_2020_04_01.rds")), "WI"),
+    disparity_estimate_table(calculate_disparity(readRDS("data/wa_statewide_2020_04_01.rds")), "WA"),
+    disparity_estimate_table(calculate_disparity(
+      readRDS("data/md_statewide_2020_04_01.rds") %>%
+        mutate(group_name = extract_first_word(department_name)) %>%  # Extract first word
+        group_by(group_name) %>%
+        mutate(county_name = first(department_name)) %>% # Assign first occurrence of department_name 
+        ungroup()
+      ), "MD")
   ) %>%
   print()
