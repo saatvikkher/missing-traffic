@@ -22,6 +22,13 @@ We user docker to run our sensitivity analysis for bounds on the ATE (Knox et al
 sudo docker run -p 8888:8888 -it gjardimduarte/autolab:v4
 ```
 
+Install the repo:
+
+```bash
+git clone https://github.com/saatvikkher/missing-traffic
+cd missing-traffic
+```
+
 All datasets can be found at [https://openpolicing.stanford.edu/data/](https://openpolicing.stanford.edu/data/). We download the datasets as RMD files and save them in `data/`
 
 ## Replicate Results
