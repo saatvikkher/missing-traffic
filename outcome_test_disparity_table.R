@@ -1,4 +1,8 @@
 source("outcome_test.R")
+library(dplyr)
+library(purrr)
+library(stringr)
+library(furrr)
 
 num_counties <- function(x) {
   length(unique(x))
@@ -30,21 +34,54 @@ disparity_estimate_table <- function(p_ate, name) {
     return()
 }
 
-disparity_estimate_table(calculate_disparity(
-  readRDS("data/oh_statewide_2020_04_01.rds") %>% 
-    mutate(contraband_found = case_when(search_conducted & is.na(contraband_found) ~ FALSE,
-                                                                                      TRUE ~ contraband_found))
-  ), "OH") %>%
-  bind_rows(
-    disparity_estimate_table(calculate_disparity(readRDS("data/co_statewide_2020_04_01.rds")), "CO"),
-    disparity_estimate_table(calculate_disparity(readRDS("data/wi_statewide_2020_04_01.rds")), "WI"),
-    disparity_estimate_table(calculate_disparity(readRDS("data/wa_statewide_2020_04_01.rds")), "WA"),
-    disparity_estimate_table(calculate_disparity(
-      readRDS("data/md_statewide_2020_04_01.rds") %>%
-        mutate(group_name = extract_first_word(department_name)) %>%  # Extract first word
-        group_by(group_name) %>%
-        mutate(county_name = first(department_name)) %>% # Assign first occurrence of department_name 
-        ungroup()
-      ), "MD")
-  ) %>%
-  print()
+
+# Set up parallel processing plan
+plan(multisession)  # Use multisession for Windows/macOS; on Linux, plan(multicore) may be preferred
+
+states <- c("OH", "CO", "WI", "WA", "MD")
+
+read_and_transform <- function(state) {
+  file_path <- sprintf("data/%s_statewide_2020_04_01.rds", tolower(state))
+  df <- readRDS(file_path)
+  
+  if (state == "OH") {
+    df <- df %>%
+      mutate(contraband_found = case_when(
+        search_conducted & is.na(contraband_found) ~ FALSE,
+        TRUE ~ contraband_found
+      ))
+  }
+  
+  if (state == "MD") {
+    df <- df %>%
+      mutate(group_name = extract_first_word(department_name)) %>% 
+      group_by(group_name) %>%
+      mutate(county_name = first(department_name)) %>%
+      ungroup()
+  }
+  
+  df
+}
+
+# Read and transform each state's data in parallel
+data_list <- set_names(future_map(states, read_and_transform), states)
+
+# Calculate disparity for each state in parallel
+disparities <- future_map(data_list, calculate_disparity)
+
+# Build a combined disparity estimate table
+# disparity_table <- bind_rows(
+#   map2(disparities, names(disparities), disparity_estimate_table)
+# )
+# print(disparity_table)
+
+# Calculate the number of counties for each state in parallel
+county_summary <- bind_rows(
+  map2_df(data_list, names(data_list), ~ .x %>%
+            summarise(num_counties = num_counties(county_name)) %>%
+            mutate(state = .y))
+)
+print(county_summary)
+
+
+

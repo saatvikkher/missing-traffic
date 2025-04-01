@@ -1,5 +1,10 @@
 library(tidyverse)
 
+extract_first_word <- function(text) {
+  space_pos <- str_locate(text, " ")[, 1]  # Extract start position of first space
+  ifelse(is.na(space_pos), text, str_sub(text, 1, space_pos - 1))  # Handle cases with no space
+}
+
 hit_rate_summary <- function(dataset) {
   dataset %>%
     filter(subject_race %in% c("white", "black") | is.na(subject_race)) %>%

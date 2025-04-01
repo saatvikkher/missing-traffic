@@ -146,14 +146,10 @@ def simulate_missingness(data, prop = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8
     nan_indices = data[data['D'].isna()].index
 
     # Dataframe to store the results
-    results_df = pd.DataFrame(columns=['prop', 'naive_estimate', 'lower_bound', 'upper_bound',
-                                       'base_lower_bound', 'base_upper_bound', 'base_naive_estimate', 'query_threshold'])
+    results_df = pd.DataFrame(columns=['prop', 'naive_estimate', 'lower_bound', 'upper_bound', 'query_threshold'])
     
     # iterate over the queries and steps
     for threshold in rho:
-        # Ignoring NaNs. This is the base estimate.
-        base_lower_bound, base_upper_bound, base_naive_estimate = calculate_bounds(data)
-
         for step in prop:
             # Determine the number of NaNs to replace for the current step
             num_nans = len(nan_indices)
@@ -180,9 +176,6 @@ def simulate_missingness(data, prop = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8
                 'naive_estimate': [naive_estimate],
                 'lower_bound': [lower_bound],
                 'upper_bound': [upper_bound],
-                'base_lower_bound': [base_lower_bound],
-                'base_upper_bound': [base_upper_bound],
-                'base_naive_estimate': [base_naive_estimate],
                 'query_threshold': [threshold]
             })
 
@@ -217,25 +210,95 @@ def read_dataset(path):
     data = data[['D', 'M', 'Y']]
 
     return data
+def simulate_manski(data, rho=[0.32]):
+    # Get the indices of NaN values in column D and True searches
+    nan_true_indices = data[(data['D'].isna()) & (data['Y'] == 1)].index
+    
+    # Get the indices of NaN values in column D and False searches
+    nan_false_indices = data[(data['D'].isna()) & (data['Y'] == 0)].index
+
+    # Dataframe to store the results
+    results_df = pd.DataFrame(columns=['prop', 'naive_estimate', 'lower_bound', 'upper_bound', 'query_threshold', 'anti_black_bias'])
+    
+    # iterate over the queries and steps
+    for threshold in rho:
+        for anti_black_bias in [0, 1]:
+            # calculate prop NA assigned to white
+            prop = len(nan_false_indices)/(len(nan_false_indices)+len(nan_true_indices)) if anti_black_bias else len(nan_true_indices)/(len(nan_false_indices)+len(nan_true_indices))
+            data.loc[nan_true_indices, 'D'] = anti_black_bias
+            data.loc[nan_false_indices, 'D'] = int(not anti_black_bias)
+            
+            lower_bound, upper_bound, naive_estimate = calculate_bounds(data, query_threshold = threshold)
+            
+            # Create a temporary DataFrame for the current step
+            temp_df = pd.DataFrame({
+                'prop': [prop],
+                'naive_estimate': [naive_estimate],
+                'lower_bound': [lower_bound],
+                'upper_bound': [upper_bound],
+                'query_threshold': [threshold],
+                'anti_black_bias': [bool(anti_black_bias)]
+            })
+
+            # Append the results using pd.concat()
+            results_df = pd.concat([results_df, temp_df], ignore_index=True)
+            print(f"Step {int(prop * 100)}% completed: {len(nan_true_indices)} NaNs set to {anti_black_bias}, {len(nan_false_indices)} NaNs set to {int(not anti_black_bias)}")
+            print(f"Updated value counts: \n {data.value_counts()}")
+        
+        print(f"Threshold: {threshold} completed")
+
+    return results_df
+
 
 if __name__ == "__main__":
-    # UPDATE THIS WITH PATHS TO DATASETS
-    datasets = ['data/co_statewide_2020_04_01.csv', 
-                'data/la_new_orleans_2020_04_01.csv', 
-                'data/oh_statewide_2020_04_01.csv', 
-                'data/wa_statewide_2020_04_01.csv', 
-                'data/wi_statewide_2020_04_01.csv']
+    # List of dataset paths
+    datasets = ['data/oh_statewide_2020_04_01.csv', 
+                'data/co_statewide_2020_04_01.csv', 
+                'data/wi_statewide_2020_04_01.csv',
+                'data/wa_statewide_2020_04_01.csv',
+                'data/md_statewide_2020_04_01.csv']
 
-    combined_results_df = pd.DataFrame()
+    rho = [0.25, 0.5, 0.75]
+
+    # Use lists to accumulate results
+    base_list = []
+    missingness_list = []
+    manski_list = []
 
     for path in datasets:
+        # Extract dataset name uniformly for all results
+        dataset_name = path.split('/')[-1]
+        print(f"Processing dataset: {dataset_name}")
         data = read_dataset(path)
-        results_df = simulate_missingness(data, prop = [0, 0.25, 0.50, 0.75, 1.0],
-                                            rho = [0, 0.33, 0.67, 1.0])
 
-        # Add a column with the dataset name
-        results_df['dataset_name'] = path.split('/')[-1]  # Extract the dataset name from the path
+        # Calculate base bounds for each threshold in rho
+        for threshold in rho:
+            base_lower_bound, base_upper_bound, base_naive_estimate = calculate_bounds(data, threshold)
+            temp_df = pd.DataFrame({
+                'base_lower_bound': [base_lower_bound],
+                'base_upper_bound': [base_upper_bound],
+                'base_naive_estimate': [base_naive_estimate],
+                'query_threshold': [threshold],
+                'dataset_name': [dataset_name]
+            })
+            base_list.append(temp_df)
 
-        # Combine results into one DataFrame
-        combined_results_df = pd.concat([combined_results_df, results_df], ignore_index=True)
-        combined_results_df.to_csv('results.csv', index=False)
+        # Simulate missingness and add dataset name (using only the filename)
+        results_df = simulate_missingness(data, prop=[0, 0.25, 0.50, 0.75, 1.0], rho=rho)
+        results_df['dataset_name'] = dataset_name
+        missingness_list.append(results_df)
+
+        # Simulate Manski bounds and add dataset name
+        manski_df = simulate_manski(data, rho=rho)
+        manski_df['dataset_name'] = dataset_name
+        manski_list.append(manski_df)
+
+    # Concatenate lists into final DataFrames
+    base_df = pd.concat(base_list, ignore_index=True)
+    missingness_results = pd.concat(missingness_list, ignore_index=True)
+    manski_results = pd.concat(manski_list, ignore_index=True)
+
+    # Save final results to CSV (writing once per output)
+    base_df.to_csv('ATE_results_base.csv', index=False)
+    missingness_results.to_csv('ATE_results.csv', index=False)
+    manski_results.to_csv('ATE_results_manski.csv', index=False)

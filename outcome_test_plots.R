@@ -1,3 +1,5 @@
+# suppress warnings
+options(warn=-1)
 library(tidyverse)
 library(ggridges)
 source("outcome_test.R")
@@ -56,6 +58,7 @@ outcome_test_plot_base <- function(disparity_results){
     ylab("County Name") +
     guides(size = "none")
 }
+
 
 # Ohio, Statewide
 
