@@ -3,7 +3,7 @@
 Official implementation for
 <pre>
 <b>Measuring the Impact of Missingness on Racial Bias in Traffic Stop Data</b>
-<a href="https://saatvikkher.github.io/">Saatvik Kher</a>, <a href="https://hardin47.netlify.app/">Johanna Hardin</a>, <a href="">Amber Lee</a>
+<a href="https://saatvikkher.github.io/">Saatvik Kher</a>, <a href="">Amber Lee</a>, <a href="https://hardin47.netlify.app/">Johanna Hardin</a>
 <a href="">link</a> 
 </pre>
 
