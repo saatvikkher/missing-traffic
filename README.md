@@ -32,16 +32,16 @@ cd missing-traffic
 All datasets can be found at [https://openpolicing.stanford.edu/data/](https://openpolicing.stanford.edu/data/). We download the datasets as RMD files and save them in `data/`
 
 ## Replicate Results
-### Diagnosing non-MCAR (Section [])
+### Diagnosing non-MCAR (Section 3)
 
-### Outcome Test (Section [])
+### Outcome Test (Section 4.1)
 
-- `outcome_test_plots.R` reproduces Figures [] for the outcome test
-- `outcome_test_disparity_table.R` reproduces Table []
+- `outcome_test_plots.R` reproduces Figures 9, 11-15 for the outcome test
+- `outcome_test_disparity_table.R` reproduces Table 4
 
 The files can also be run in parallel using `outcome_test_plots_parallel.R`
 
-### Bounds on ATE (Section [])
+### Bounds on ATE (Section 4.2)
 
 - Run the file `autobounds_script.py` in the Docker container to produce files in `ate_results/`.
-- `ate_plots.R` reproduces Figures []
+- `ate_plots.R` reproduces Figures 10, 16-21
