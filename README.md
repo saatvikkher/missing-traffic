@@ -34,6 +34,9 @@ All datasets can be found at [https://openpolicing.stanford.edu/data/](https://o
 ## Replicate Results
 ### Diagnosing non-MCAR (Section 3)
 
+- `dCMR_func.R` contains the R function for calculating dCMR for different choices of explanatory variable.
+- `diagnosing_nonMCAR_plots.R` reproduces Figures 2, 4, 5, 6, 7, and 8
+
 ### Outcome Test (Section 4.1)
 
 - `outcome_test_plots.R` reproduces Figures 9, 11-15 for the outcome test
