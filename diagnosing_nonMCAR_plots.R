@@ -150,7 +150,7 @@ p1 <- ohio_dcmr_time |>
          xlab("") +
          ylab(TeX("$\\bar{\\omega}(k = time, b = hour)$")) +
          scale_color_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1)) + 
-         labs(title = "dCMR: OH, statewide")
+         labs(title = "dCMR: Ohio, Statewide")
 
 ggsave("F1_dcmr_time_OH.png", plot = p1, height=8, width=8) 
 
@@ -219,11 +219,11 @@ dcmr_week_q <- rbind(losangeles_dcmr_date, bakersfield_dcmr_date,
                    tampa_dcmr_date, az_dcmr_date, aurora_dcmr_date)
 
 p5 <- dcmr_week_q |>
-  mutate(dataset_name_clean = case_when(substr(dataset_name, 1, 4) == "ca_l"~ "Los Angeles, CA",
-                                        substr(dataset_name, 1, 4) == "ca_b"~ "Bakersfield, CA",
-                                        substr(dataset_name, 1, 2) == "fl"~ "Tampa, FL",
+  mutate(dataset_name_clean = case_when(substr(dataset_name, 1, 4) == "ca_l"~ "Los Angeles, California",
+                                        substr(dataset_name, 1, 4) == "ca_b"~ "Bakersfield, California",
+                                        substr(dataset_name, 1, 2) == "fl"~ "Tampa, Florida",
                                         substr(dataset_name, 1, 2) == "az"~ "Arizona, Statewide",
-                                        substr(dataset_name, 1, 2) == "co"~ "Aurora, CO"),
+                                        substr(dataset_name, 1, 2) == "co"~ "Aurora, Colorado"),
          dataset_name_clean = paste0(dataset_name_clean, "\n(", round(max_cor, 2), ")")) |>
   mutate(dataset_name_clean = forcats::fct_reorder(dataset_name_clean,
                                                    max_cor, .fun = mean)) |> 
@@ -234,7 +234,7 @@ p5 <- dcmr_week_q |>
         axis.text.y = element_text(size=8),
         legend.text = element_text(size=8),
         legend.title = element_text(size=8),
-        strip.text.x =element_text(size=8),
+        strip.text.x =element_text(size=6),
         legend.key.height = unit(3, "pt"),
         legend.title.position = "left",
         legend.position="bottom") +
@@ -264,7 +264,7 @@ p6 <- dcmr_week_8 |>
                                         substr(dataset_name, 1, 2) == "md"~ "Maryland, Statewide",
                                         substr(dataset_name, 1, 2) == "nj"~ "New Jersey, Statewide",
                                         substr(dataset_name, 1, 2) == "wi"~ "Wisconsin, Statewide",
-                                        substr(dataset_name, 1, 2) == "il"~ "Chicago, IL"),
+                                        substr(dataset_name, 1, 2) == "il"~ "Chicago, Illinois"),
   dataset_name_clean = paste0(dataset_name_clean, "\n(", round(max_cor, 2), ")")) |>
   ggplot(aes(x = ymd(week), y = dCMR)) +
   geom_point(size=.5) +
@@ -303,7 +303,7 @@ p7 <- dcmr_time |>
                                         substr(dataset_name, 1, 2) == "md"~ "Maryland, Statewide",
                                         substr(dataset_name, 1, 2) == "nj"~ "New Jersey, Statewide",
                                         substr(dataset_name, 1, 2) == "wi"~ "Wisconsin, Statewide",
-                                        substr(dataset_name, 1, 2) == "il"~ "Chicago, IL"),
+                                        substr(dataset_name, 1, 2) == "il"~ "Chicago, Illinois"),
          dataset_name_clean = paste0(dataset_name_clean, "\n(", round(max_cor, 2), ")")) |>
   ggplot(aes(x = hour_24, y = dCMR)) +
   geom_point(size=1) +
@@ -352,7 +352,7 @@ p8 <- dcmr_g6 |>
                                         substr(dataset_name, 1, 2) == "md"~ "Maryland, Statewide",
                                         substr(dataset_name, 1, 2) == "nj"~ "New Jersey, Statewide",
                                         substr(dataset_name, 1, 2) == "wi"~ "Wisconsin, Statewide",
-                                        substr(dataset_name, 1, 2) == "il"~ "Chicago, IL")) |>
+                                        substr(dataset_name, 1, 2) == "il"~ "Chicago, Illinois")) |>
   filter(latitude > 10) |>
   filter((dataset_name_clean == "Ohio, Statewide" & longitude < -80 & longitude > -85 & latitude < 42)| dataset_name_clean != "Ohio, Statewide") |>
   mutate(longitude = case_when(dataset_name_clean=="Wisconsin, Statewide" ~ -abs(longitude),
