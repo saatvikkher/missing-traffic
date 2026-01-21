@@ -138,7 +138,8 @@ wa_dcmr_g6 <- count_nas_dCMR('wa_statewide_2020_04_01', wa_statewide_2020_04_01,
 p1 <- ohio_dcmr_time |>
        ggplot(aes(x = hour_24, y = dCMR)) +
          geom_point(size=1) +
-         theme(axis.title.y=element_text(size=10),
+         theme(axis.title = element_text(size=20),
+               plot.title = element_text(size = 20),
                axis.text.x = element_text(size=8, angle=0),
                axis.text.y = element_text(size=8),
                legend.text = element_text(size=8),
